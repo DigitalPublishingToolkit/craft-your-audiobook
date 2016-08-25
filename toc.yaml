@@ -1,0 +1,8 @@
+#this file will be used to produce the chapters file
+#add more chapters if your book so demands 
+chapter1: "Edit this, typing the chapter title"
+chapter2: "Edit this, typing the chapter title"
+chapter3: "Edit this, typing the chapter title"
+chapter4: "Edit this, typing the chapter title"
+chapter5: "Edit this, typing the chapter title"
+chapter6: "Edit this, typing the chapter title"
