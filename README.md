@@ -6,14 +6,14 @@ For this process, you'll need:
   <li>one or more text files in <a href="https://daringfireball.net/projects/markdown/syntax">markdown</a> format (each chapter should have its own file, they should all be located inside directory 'md')</li>
   <li>a cover image (jpg or png)</li>
   <li>a YAML file containing chapter names (simply edit toc.yaml)</li>
-  <li><a href="https://www.python.org/downloads/">python (and modules listed below)</a>
+  <li><a href="https://www.python.org/downloads/">python</a> (and modules listed below)
     <ul>
-      <li>sys</li>
+      <li>datetime</li>
       <li>os</li>
       <li>shutil</li>
       <li>subprocess</li>
+      <li>sys</li>
       <li>yaml</li>
-      <li>datetime</li>
     </ul>
   </li>
   <li><a href="http://pandoc.org/installing.html">pandoc</a></li>
