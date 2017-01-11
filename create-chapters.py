@@ -7,28 +7,121 @@ p = os.getcwd()
 os.mkdir( p+'/txt', 0755 );
 os.mkdir( p+'/wav', 0755 );
 os.mkdir( p+'/mp3', 0755 );
+os.mkdir( p+'/tmp-md', 0755);
+os.mkdir( p+'/txt-ref', 0755);
 
 #will store chapter duration values
 durations = []
 
+
+
 #converts all markdown files inside folder "md" into plain text (will be saved inside folder "txt")
 for i in os.listdir('md'):
     if i.endswith(".md") :
-        mdf = os.path.split('md')[1] + '/' + i
+        # mdf = os.path.split('md')[1] + '/' + i
+
+        # inliner - converts reference-style Markdown endnotes to Pandoc Markdown's inline footnotes
+        # by Louis Goddard <louisgoddard@gmail.com>
+
+        with open('md/'+i, "r") as input:
+            text = input.read()
+            #remove * as they do not translate well into plain txt
+            text = text.replace('*','')
+            counter = 0
+
+            while True:
+                try:
+
+                    counter = counter + 1
+
+                    ref = "[^" + str(counter) + "]:"
+                    nextRef = "[^" + str(counter + 1) + "]:"
+                    cite = "[^" + str(counter) + "]"
+
+                    refStart = text.index(ref)
+                    tLength = len(text)
+
+                    try:
+                        refEnd = text.index(nextRef) - 2
+                    except ValueError:
+                        break
+                        # refEnd = -1
+                        # refEnd = text.index(tLength) - 2
+
+                    offset = len(str(counter)) + 5
+
+                    note = "^[" + text[refStart+offset:refEnd] + "]"
+                    text = text.replace(cite, note)
+
+
+
+                except ValueError:
+                    refStart = False
+
+                    break
+
+            # if counter >= 1:
+            if refStart == False:
+                print("No notes in the document.")
+                pass
+            else:
+                offset = len(str(counter)) + 5
+
+                note = "^[" + text[refStart+offset:len(text)-1] + "]"
+                text = text.replace(cite, note)
+                text = text.replace("\n    ", " ")
+                cutPoint = text.index("\n^")
+                text = text[0:cutPoint]
+                if counter == 1:
+                    print(str(counter) + " note now inline.")
+                else:
+                    print(str(counter) + " notes now inline.")
+
+            with open('tmp-md/'+i, "w") as output:
+                output.write(text)
+
+        #end inliner
+
         print '////////////////////////////////'
-        print 'Converting ' + mdf
+        # print 'Converting ' + mdf
+        mdclean = os.path.split('tmp-md')[1] + '/' + i
+        print 'Converting ' + mdclean
         txtf =  os.path.split('txt')[1] + '/' +os.path.splitext(i)[0] + ".txt"
-        pandoc_args = ['pandoc', mdf, '-t', 'plain', '-o', txtf]
+        pandoc_args = ['pandoc', '-f', 'markdown-inline_notes', mdclean, '-t', 'plain', '-o', txtf]
+        # -f markdown_strict+footnotes (would also work)
+        # pandoc -f markdown-inline_notes FINAL.md -t plain -o FINAL-INLINE_NOTES.txt
         subprocess.check_call(pandoc_args)
-        print 'Converted ' + mdf + ' into ' + txtf
+        print 'Converted ' + mdclean + ' into ' + txtf
+
+        print '////////////////////////////////'
+        print 'Deleting file ' + mdclean
+        os.remove(mdclean)
+        print 'Deleted file ' + mdclean
         continue
     else:
         continue
 
+#removes empty tmp-md folder
+print '////////////////////////////////'
+print 'Deleting empty "tmp-md" folder'
+os.rmdir('tmp-md')
+
 #converts txt files inside folder "txt" into wav (places inside "wav" folder)
 for i in os.listdir('txt'):
     if i.endswith(".txt") :
-        f = os.path.split('txt')[1] + '/' + i
+        # f = os.path.split('txt')[1] + '/' + i
+
+        #replace ^ with 'Reference' (more clear and user-friendly to the listener)
+        with open('txt/'+i, "r") as input:
+            text = input.read()
+            text = text.replace('^[',' Reference[')
+
+        with open('txt-ref/'+i, "w") as output:
+            output.write(text)
+
+        f = os.path.split('txt-ref')[1] + '/' + i
+        forig = os.path.split('txt')[1] + '/' + i
+
         print '////////////////////////////////'
         print 'Converting ' + f
         fileout =  os.path.split('wav')[1] + '/' +os.path.splitext(i)[0] + ".wav"
@@ -37,9 +130,10 @@ for i in os.listdir('txt'):
         print 'Converted ' + f + ' into ' + fileout
 
         print '////////////////////////////////'
-        print 'Deleting txt file ' + f
+        print 'Deleting txt files ' + f + ' and ' + forig
         os.remove(f)
-        print 'Deleted file ' + f
+        os.remove(forig)
+        print 'Deleted files '  + f + ' and ' + forig
 
         continue
     else:
@@ -49,6 +143,7 @@ for i in os.listdir('txt'):
 print '////////////////////////////////'
 print 'Deleting empty "txt" folder'
 os.rmdir('txt')
+os.rmdir('txt-ref')
 
 #adds 1s padding to audio files and converts from wav to mp3
 for i in os.listdir('wav'):
